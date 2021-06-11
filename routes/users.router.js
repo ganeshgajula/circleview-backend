@@ -36,7 +36,7 @@ router.route("/authenticate").post(async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && user.password === password) {
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "Valid user credentials",
         userDetails: { userId: user._id, firstname: user.firstname },
@@ -67,7 +67,7 @@ router.param("email", async (req, res, next, id) => {
     const user = await User.findOne({ email: id });
 
     if (!user) {
-      res
+      return res
         .status(404)
         .json({ success: false, message: "No user found with this email" });
     }
@@ -79,17 +79,18 @@ router.param("email", async (req, res, next, id) => {
       success: false,
       message:
         "Couldn't find user with this email, kindly check the error message for more details",
+      errorMessage: error.message,
     });
   }
 });
 
 router.route("/:email").post(async (req, res) => {
   try {
-    const { user } = req;
+    let { user } = req;
     const userUpdates = req.body;
     user = extend(user, userUpdates);
     const updatedUserInfo = await user.save();
-    res.status(200).json({ success: true, updatedUserInfo });
+    res.json({ success: true, updatedUserInfo });
   } catch (error) {
     res.status(500).json({
       success: false,
