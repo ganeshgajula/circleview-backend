@@ -20,6 +20,30 @@ app.use("/playlists", playlists);
 
 app.get("/", (req, res) => res.send("Welcome to Circleview"));
 
+/**
+ * 404 Route Handler
+ * Note: Do not move. This should be the last route
+ */
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "route not found on server, please check.",
+  });
+});
+
+/**
+ * Error Handler
+ * Note: Do not move
+ */
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: "error occurred, kindly check the error message for more details",
+    errorMessage: err.message,
+  });
+});
+
 app.listen(process.env.PORT || PORT, () =>
   console.log(`server is running at port ${PORT}`)
 );
