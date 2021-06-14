@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const videos = require("./routes/videos.router");
 const users = require("./routes/users.router");
+const playlists = require("./routes/playlists.router");
 const initializeDbConnection = require("./db/db.connect");
 
 const app = express();
@@ -15,6 +16,7 @@ initializeDbConnection();
 
 app.use("/videos", videos);
 app.use("/users", users);
+app.use("/playlists", playlists);
 
 app.get("/", (req, res) => res.send("Welcome to Circleview"));
 
