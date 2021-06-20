@@ -8,6 +8,7 @@ const PlaylistSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      isDefault: { type: Boolean, default: false },
       videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
     },
   ],
