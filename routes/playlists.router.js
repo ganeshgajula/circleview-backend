@@ -45,6 +45,36 @@ router.param("userId", async (req, res, next, id) => {
   }
 });
 
+// router.param("playlistId", async (req, res, next, id) => {
+//   try {
+//     let { playlist } = req;
+//     console.log("from playlistId params", playlist);
+//     let matchedPlaylist;
+//     // playlist.playlists.map((currentPlaylist) => {
+//     //   // console.log(currentPlaylists);
+//     //   if (currentPlaylist._id == id) {
+//     //     matchedPlaylist = currentPlaylist;
+//     //     console.log("line 55", matchedPlaylist);
+//     //   }
+//     //   // else {
+//     //   //   playlistVideos = [];
+//     //   //   console.log("line 58", playlistVideos);
+//     //   // }
+//     // });
+//     matchedPlaylist = playlist.playlists;
+//     console.log("line 61", matchedPlaylist);
+//     req.matchedPlaylist = matchedPlaylist;
+//     next();
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message:
+//         "Couldn't find playlist videos of user, kindly check the error message for more details",
+//       errorMessage: error.message,
+//     });
+//   }
+// });
+
 router
   .route("/:userId/playlist")
   .get(async (req, res) => {
@@ -77,11 +107,13 @@ router
         ? playlist.playlists.map((currentPlaylist) => {
             if (currentPlaylist._id == playlistUpdates._id) {
               currentPlaylist = extend(currentPlaylist, playlistUpdates);
-              currentPlaylist.videos.push(playlistUpdates.videoId);
+              playlistUpdates.videoId &&
+                currentPlaylist.videos.push(playlistUpdates.videoId);
             }
           })
         : playlist.playlists.push({
             name: playlistUpdates.name,
+            isDefault: playlistUpdates.isDefault,
             videos: playlistUpdates.videoId,
           });
 
@@ -128,5 +160,36 @@ router
       });
     }
   });
+
+router.delete("/:userId/playlist/videos", async (req, res) => {
+  try {
+    let { playlist } = req;
+    const playlistVideoUpdates = req.body;
+
+    playlist.playlists.map((playlist) => {
+      if (playlist._id == playlistVideoUpdates.playlistId) {
+        playlist.videos.map((video) => {
+          if (video._id == playlistVideoUpdates.videoId) {
+            playlist.videos.pull(video);
+          }
+        });
+      }
+    });
+
+    let updatedPlaylist = await playlist.save();
+    updatedPlaylist = await updatedPlaylist
+      .populate({ path: "playlists.videos" })
+      .execPopulate();
+
+    res.status(200).json({ success: true, playlist: updatedPlaylist });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message:
+        "Couldn't remove video from playlist, kindly check error message for more details",
+      errorMessage: error.message,
+    });
+  }
+});
 
 module.exports = router;
