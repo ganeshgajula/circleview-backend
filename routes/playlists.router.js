@@ -29,7 +29,14 @@ router.param("userId", async (req, res, next, id) => {
     let playlist = await Playlist.findOne({ userId: id });
 
     if (!playlist) {
-      playlist = new Playlist({ userId: id, playlists: [] });
+      playlist = new Playlist({
+        userId: id,
+        playlists: [
+          { name: "Watch later", isDefault: true, videos: [] },
+          { name: "Saved videos", isDefault: true, videos: [] },
+          { name: "Liked videos", isDefault: true, videos: [] },
+        ],
+      });
       playlist = await playlist.save();
     }
 
@@ -44,36 +51,6 @@ router.param("userId", async (req, res, next, id) => {
     });
   }
 });
-
-// router.param("playlistId", async (req, res, next, id) => {
-//   try {
-//     let { playlist } = req;
-//     console.log("from playlistId params", playlist);
-//     let matchedPlaylist;
-//     // playlist.playlists.map((currentPlaylist) => {
-//     //   // console.log(currentPlaylists);
-//     //   if (currentPlaylist._id == id) {
-//     //     matchedPlaylist = currentPlaylist;
-//     //     console.log("line 55", matchedPlaylist);
-//     //   }
-//     //   // else {
-//     //   //   playlistVideos = [];
-//     //   //   console.log("line 58", playlistVideos);
-//     //   // }
-//     // });
-//     matchedPlaylist = playlist.playlists;
-//     console.log("line 61", matchedPlaylist);
-//     req.matchedPlaylist = matchedPlaylist;
-//     next();
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message:
-//         "Couldn't find playlist videos of user, kindly check the error message for more details",
-//       errorMessage: error.message,
-//     });
-//   }
-// });
 
 router
   .route("/:userId/playlist")
