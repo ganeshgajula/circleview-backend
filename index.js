@@ -1,4 +1,5 @@
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const express = require("express");
 const cors = require("cors");
 const videos = require("./routes/videos.router");
@@ -15,10 +16,27 @@ const PORT = 4000;
 
 initializeDbConnection();
 
+const authVerify = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  console.log({ token });
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    console.log({ decoded });
+    req.user = { userId: decoded.userId };
+    return next();
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized access, please add the correct token.",
+      errorMessage: error.message,
+    });
+  }
+};
+
 app.use("/videos", videos);
 app.use("/users", users);
-app.use("/playlists", playlists);
-app.use("/history", history);
+app.use("/playlists", authVerify, playlists);
+app.use("/history", authVerify, history);
 
 app.get("/", (req, res) => res.send("Welcome to Circleview"));
 
