@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const express = require("express");
 const router = express.Router();
 const { User } = require("../models/user.model");
@@ -12,12 +13,15 @@ router.route("/signup").post(async (req, res) => {
 
     if (!doesEmailAlreadyExists) {
       const newUser = new User(userDetails);
+      const salt = await bcrypt.genSalt(10);
+      newUser.password = await bcrypt.hash(newUser.password, salt);
       const savedUser = await newUser.save();
-      res.status(201).json({ success: true, savedUser });
+      return res.status(201).json({ success: true, savedUser });
     }
     return res.status(409).json({
       success: false,
-      message: "You already have an account with this email, kindly login",
+      message:
+        "User already registered with entered email. kindly login or use different email for signup.",
     });
   } catch (error) {
     res.status(500).json({
@@ -29,28 +33,31 @@ router.route("/signup").post(async (req, res) => {
   }
 });
 
-router.route("/authenticate").post(async (req, res) => {
+router.route("/login").post(async (req, res) => {
   try {
     const email = req.get("email");
     const password = req.get("password");
     const user = await User.findOne({ email });
 
-    if (user && user.password === password) {
-      return res.status(200).json({
-        success: true,
-        message: "Valid user credentials",
-        userDetails: { userId: user._id, firstname: user.firstname },
-      });
-    } else if (!user) {
+    if (user) {
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (validPassword) {
+        return res.status(200).json({
+          success: true,
+          message: "Valid user credentials",
+          userDetails: { userId: user._id, firstname: user.firstname },
+        });
+      }
       return res.status(401).json({
         success: false,
         message:
-          "This email is not registered with us, kindly create a new account.",
+          "Incorrect user credentials. Please login with correct credentials",
       });
     }
     return res.status(401).json({
       success: false,
-      message: "Password is incorrect, please enter the correct password.",
+      message:
+        "This email is not registered with us, kindly create a new account.",
     });
   } catch (error) {
     res.status(500).json({
