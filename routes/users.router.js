@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const express = require("express");
 const router = express.Router();
 const { User } = require("../models/user.model");
@@ -42,10 +43,14 @@ router.route("/login").post(async (req, res) => {
     if (user) {
       const validPassword = await bcrypt.compare(password, user.password);
       if (validPassword) {
+        const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+          expiresIn: "24h",
+        });
+
         return res.status(200).json({
           success: true,
           message: "Valid user credentials",
-          userDetails: { userId: user._id, firstname: user.firstname },
+          userDetails: { userId: user._id, firstname: user.firstname, token },
         });
       }
       return res.status(401).json({
