@@ -50,7 +50,11 @@ router.route("/login").post(async (req, res) => {
         return res.status(200).json({
           success: true,
           message: "Valid user credentials",
-          userDetails: { userId: user._id, firstname: user.firstname, token },
+          userDetails: {
+            userId: user._id,
+            firstname: user.firstname,
+            token: `Bearer ${token}`,
+          },
         });
       }
       return res.status(401).json({
