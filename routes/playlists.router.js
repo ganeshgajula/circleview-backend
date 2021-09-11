@@ -1,31 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const { Playlist } = require("../models/playlist.model");
-const { User } = require("../models/user.model");
 const { extend } = require("lodash");
 
 router.param("userId", async (req, res, next, id) => {
   try {
-    const user = await User.findById(id);
+    const { user } = req;
 
     if (!user) {
-      res.status(404).json({ success: false, message: "user not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "user not found" });
     }
 
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      mesage:
-        "Couldn't get the user, kindly check the error message for more details",
-      errorMessage: error.message,
-    });
-  }
-});
-
-router.param("userId", async (req, res, next, id) => {
-  try {
     let playlist = await Playlist.findOne({ userId: id });
 
     if (!playlist) {

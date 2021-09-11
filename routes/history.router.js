@@ -1,30 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const { User } = require("../models/user.model");
 const { History } = require("../models/history.model");
 
 router.param("userId", async (req, res, next, id) => {
   try {
-    const user = await User.findById(id);
+    const { user } = req;
 
     if (!user) {
-      res.status(404).json({ success: false, message: "user not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "user not found" });
     }
 
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message:
-        "Couldn't find user, kindly check the error message for more details",
-      errorMessage: error.message,
-    });
-  }
-});
-
-router.param("userId", async (req, res, next, id) => {
-  try {
     let history = await History.findOne({ userId: id });
 
     if (!history) {
