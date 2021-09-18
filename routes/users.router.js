@@ -53,6 +53,7 @@ router.route("/login").post(async (req, res) => {
           userDetails: {
             userId: user._id,
             firstname: user.firstname,
+            lastname: user.lastname,
             token: `Bearer ${token}`,
           },
         });
@@ -78,9 +79,9 @@ router.route("/login").post(async (req, res) => {
   }
 });
 
-router.param("email", async (req, res, next, id) => {
+router.param("userId", async (req, res, next, id) => {
   try {
-    const user = await User.findOne({ email: id });
+    const user = await User.findById(id);
 
     if (!user) {
       return res
@@ -94,27 +95,41 @@ router.param("email", async (req, res, next, id) => {
     res.status(500).json({
       success: false,
       message:
-        "Couldn't find user with this email, kindly check the error message for more details",
+        "Couldn't find user with this id, kindly check the error message for more details",
       errorMessage: error.message,
     });
   }
 });
 
-router.route("/:email").post(async (req, res) => {
-  try {
-    let { user } = req;
-    const userUpdates = req.body;
-    user = extend(user, userUpdates);
-    const updatedUserInfo = await user.save();
-    res.json({ success: true, updatedUserInfo });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message:
-        "Couldn't update user details, kindly check the error message for more details",
-      errorMessage: error.message,
-    });
-  }
-});
+router
+  .route("/:userId")
+  .get(async (req, res) => {
+    try {
+      let { user } = req;
+      res.json({ success: true, user });
+    } catch (error) {
+      res.status(404).json({
+        success: false,
+        message: "Couldn't get user",
+        errorMessage: error.message,
+      });
+    }
+  })
+  .post(async (req, res) => {
+    try {
+      let { user } = req;
+      const userUpdates = req.body;
+      user = extend(user, userUpdates);
+      const updatedUserInfo = await user.save();
+      res.json({ success: true, updatedUserInfo });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message:
+          "Couldn't update user details, kindly check the error message for more details",
+        errorMessage: error.message,
+      });
+    }
+  });
 
 module.exports = router;
